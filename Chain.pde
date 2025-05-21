@@ -24,12 +24,35 @@ class Chain {
   }
 
   void resolve(PVector pos) {
-    angles.set(0, PVector.sub(pos, joints.get(0)).heading());
+    // Calculate the target angle from the first joint to the position
+    PVector toPos = PVector.sub(pos, joints.get(0));
+    float targetAngle = toPos.heading();
+    
+    // Smoothly interpolate the angle to prevent sudden flips
+    float currentAngle = angles.get(0);
+    float angleDiff = atan2(sin(targetAngle - currentAngle), cos(targetAngle - currentAngle));
+    float newAngle = currentAngle + constrain(angleDiff, -angleConstraint, angleConstraint);
+    
+    // Update the first joint
+    angles.set(0, newAngle);
     joints.set(0, pos);
+    
+    // Update subsequent joints with angle constraints
     for (int i = 1; i < joints.size(); i++) {
-      float curAngle = PVector.sub(joints.get(i - 1), joints.get(i)).heading();
-      angles.set(i, constrainAngle(curAngle, angles.get(i - 1), angleConstraint));
-      joints.set(i, PVector.sub(joints.get(i - 1), PVector.fromAngle(angles.get(i)).setMag(linkSize)));
+      PVector dir = PVector.sub(joints.get(i-1), joints.get(i));
+      float currentJointAngle = dir.heading();
+      
+      // Calculate the desired angle (pointing towards previous joint)
+      float desiredAngle = PVector.sub(joints.get(i-1), joints.get(i)).heading();
+      
+      // Constrain the angle relative to the previous segment
+      float prevAngle = angles.get(i-1);
+      float constrainedAngle = constrainAngle(desiredAngle, prevAngle, angleConstraint);
+      
+      // Update the joint position
+      PVector newPos = PVector.sub(joints.get(i-1), PVector.fromAngle(constrainedAngle).mult(linkSize));
+      joints.set(i, newPos);
+      angles.set(i, constrainedAngle);
     }
   }
 

@@ -1,5 +1,3 @@
-import processing.javafx.*;
-
 Fish fish;
 Snake snake;
 Lizard lizard;
@@ -7,8 +5,9 @@ Lizard lizard;
 int animal;
 
 void setup() {
-  fullScreen(FX2D);
-
+  fullScreen();
+  smooth();  // Enable anti-aliasing
+  
   fish = new Fish(new PVector(width/2, height/2));
   snake = new Snake(new PVector(width/2, height/2));
   lizard = new Lizard(new PVector(width/2, height/2));
